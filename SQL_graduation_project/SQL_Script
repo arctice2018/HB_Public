@@ -15,7 +15,7 @@ ORDER BY 2 DESC;
 */
 SELECT
   suplrs.CompanyName AS suplr_name,
-  COUNT(prdts.ProductName）AS count_prdt
+  COUNT(*）AS count_prdt
 FROM
   Suppliers suplrs
 JOIN
