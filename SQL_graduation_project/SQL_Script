@@ -1,10 +1,21 @@
 /*
 1st Question:
+供应商都分布在哪些国家,城市？
+*/
+SELECT
+  Country,COUNT(*)
+FROM
+  Suppliers suplrs
+GROUP BY 1
+ORDER BY 2 DESC;
+
+/*
+2nd Question:
 各个供应商提供的产品的数量分别是多少？
 */
 SELECT
-  suplrs.CompanyName AS suplr_name,
-  COUNT(prdts.ProductName）AS count_prdt
+ suplrs.CompanyName AS suplr_name,
+ COUNT(prdts.ProductName) AS count_product
 FROM
   Suppliers suplrs
 JOIN
@@ -15,53 +26,7 @@ GROUP BY 1
 ORDER BY 2 DESC;
 
 /*
-2nd Question:
-哪些产品类别或者名称的毛利率高于平均，需要包含供应商的名称。
-*/
-WITH t1 AS(
-  SELECT
-    prdts.ProductName AS prdt_name,
-    categr.CategoryName AS categr_name,
-    suplrs.CompanyName AS suplr_name,
-    CAST((odrdtl.UnitPrice-prdts.UnitPrice) AS float)/prdts.UnitPrice AS grose_margin_rate
-  FROM
-    Suppliers suplrs
-  JOIN
-    Products prdts
-  ON
-    suplrs.SupplierID = prdts.SupplierID
-  JOIN
-    OrderDetailes odrdtl
-  ON
-    odrdtl.ProductID = prdts.ProductID
-  JOIN
-    Categories categr
-  ON
-    categr.CategoryID = prdts.CategoryID
-  )
-SELECT
-  suplr_name,grose_margin_rate
-FROM
-  t1
-GROUP BY 1
-HAVING
-  grose_margin_rate > AVG(grose_margin_rate)
-ORDER BY 2 DESC;
-
-/*
 3rd Question:
-供应商都分布在哪些国家,城市？
-*/
-SELECT
-  Country,COUNT(*)
-FROM
-  Suppliers suplrs
-GROUP BY 1
-ORDER BY 2 DESC;
-
-
-/*
-4th Question:
 销售额最大的客户的产品都有哪些？是哪个供应商提供的货物？
 */
 WITH t1 AS(
@@ -97,4 +62,4 @@ FROM
   t1
 GROUP BY 1,2
 ORDER BY 3 DESC
-LIMIT 1;
+LIMIT 10;
