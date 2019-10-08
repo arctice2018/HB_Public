@@ -1,21 +1,10 @@
 /*
 1st Question:
-供应商都分布在哪些国家,城市？
-*/
-SELECT
-  Country,COUNT(*)
-FROM
-  Suppliers suplrs
-GROUP BY 1
-ORDER BY 2 DESC;
-
-/*
-2nd Question:
 各个供应商提供的产品的数量分别是多少？
 */
 SELECT
- suplrs.CompanyName AS suplr_name,
- COUNT(prdts.ProductName) AS count_product
+  suplrs.CompanyName AS suplr_name,
+  COUNT(prdts.ProductName）AS count_prdt
 FROM
   Suppliers suplrs
 JOIN
@@ -25,8 +14,22 @@ ON
 GROUP BY 1
 ORDER BY 2 DESC;
 
+
+
 /*
-3rd Question:
+2rd Question:
+供应商都分布在哪些国家,城市？
+*/
+SELECT
+  Country,COUNT(*)
+FROM
+  Suppliers suplrs
+GROUP BY 1
+ORDER BY 2 DESC;
+
+
+/*
+3th Question:
 销售额最大的客户的产品都有哪些？是哪个供应商提供的货物？
 */
 WITH t1 AS(
@@ -62,4 +65,39 @@ FROM
   t1
 GROUP BY 1,2
 ORDER BY 3 DESC
+LIMIT 10;
+
+/*
+4th Question:
+单价（UnitPrice）价格高于平均价格的产品都是由哪些供应商供应的？
+*/
+WITH t1 AS(
+  SELECT
+    prdts.UnitPrice AS prdt_unit_price,
+    suplrs.CompanyName AS suplr_name
+  FROM
+    Products prdts
+  JOIN
+    Suppliers suplrs
+  ON
+    suplrs.SupplierID = prdts.SupplierID
+)
+t2 AS(
+  SELECT
+    AVG(prdt_unit_price) AS avg_prdt_unit_price
+  FROM
+    t1
+)
+SELECT
+  suplrs.CompanyName AS suplrs_name,
+  prdts.UnitPrice AS prdt_unit_price
+FROM
+  Products prdts
+JOIN
+  Suppliers suplrs
+ON
+  suplrs.SupplierID = prdts.SupplierID
+WHERE
+  prdt_unit_price > (SELECT * FROM t2)
+ORDER BY 2 DESC
 LIMIT 10;
