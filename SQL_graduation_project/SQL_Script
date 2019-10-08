@@ -1,5 +1,16 @@
 /*
 1st Question:
+供应商都分布在哪些国家,城市？
+*/
+SELECT
+  Country,COUNT(*)
+FROM
+  Suppliers suplrs
+GROUP BY 1
+ORDER BY 2 DESC;
+
+/*
+2nd Question:
 各个供应商提供的产品的数量分别是多少？
 */
 SELECT
@@ -13,20 +24,6 @@ ON
   suplrs.SupplierID = prdts.SupplierID
 GROUP BY 1
 ORDER BY 2 DESC;
-
-
-
-/*
-2rd Question:
-供应商都分布在哪些国家,城市？
-*/
-SELECT
-  Country,COUNT(*)
-FROM
-  Suppliers suplrs
-GROUP BY 1
-ORDER BY 2 DESC;
-
 
 /*
 3th Question:
