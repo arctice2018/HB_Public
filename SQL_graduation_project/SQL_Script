@@ -81,7 +81,7 @@ WITH t1 AS(
     Suppliers suplrs
   ON
     suplrs.SupplierID = prdts.SupplierID
-)
+),
 t2 AS(
   SELECT
     AVG(prdt_unit_price) AS avg_prdt_unit_price
