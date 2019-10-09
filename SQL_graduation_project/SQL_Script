@@ -18,7 +18,7 @@ WITH t1 AS (
   SELECT
     suplrs.CompanyName AS suplr_name,
     suplrs.Country AS suplr_in_country,
-    catgory.CategoryName AS catgory_name,
+    catgory.CategoryName AS catgory_name
   FROM
     Suppliers suplrs
   JOIN
