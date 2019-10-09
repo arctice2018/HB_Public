@@ -3,7 +3,7 @@
 供应商都分布在哪些国家,城市？
 */
 SELECT
-  Country,COUNT(*)
+  Country,COUNT(*) AS num_suplr
 FROM
   Suppliers suplrs
 GROUP BY 1
