@@ -12,19 +12,25 @@ LIMIT 5;
 
 /*
 2nd Question:
-各个供应商提供的产品的数量分别是多少？
+各个供应商提供的产品种类分别是多少？
 */
 SELECT
   suplrs.CompanyName AS suplr_name,
-  COUNT(*）AS count_prdt
+  suplrs.Country,
+  catgory.CategoryName,
+  COUNT(*) AS count_prdt_category
 FROM
   Suppliers suplrs
 JOIN
   Products prdts
 ON
   suplrs.SupplierID = prdts.SupplierID
-GROUP BY 1
-ORDER BY 2 DESC
+JOIN
+  Categories catgory
+ON
+  catgory.CategoryID = prdts.CategoryID
+GROUP BY 1,2,3
+ORDER BY 4 DESC
 LIMIT 5;
 
 /*
