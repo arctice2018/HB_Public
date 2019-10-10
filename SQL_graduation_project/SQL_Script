@@ -16,7 +16,7 @@ LIMIT 5;
 */
 WITH t1 AS (
   SELECT
-    suplrs.CompanyName AS suplr_name,
+    suplrs.CompanyName AS suplrs_name,
     suplrs.Country AS suplr_in_country,
     catgory.CategoryName AS catgory_name
   FROM
