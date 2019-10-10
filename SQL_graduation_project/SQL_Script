@@ -2,8 +2,10 @@
 1st Question:
 哪些供应商与批发商的客户在同一个国家？
 */
+
 SELECT
-  suplrs.CompanyName,COUNT(*) AS num_suplr
+  suplrs.Country AS suplr_country,
+  COUNT(suplrs.CompanyName) AS num_suplr_in_one_country
 FROM
   Customers custmrs
 JOIN
@@ -22,6 +24,13 @@ JOIN
   Suppliers suplrs
 ON
   suplrs.SupplierID = prdts.SupplierID
+WHERE
+  suplrs.Country = custmrs.Country
+GROUP BY 1
+ORDER BY 2 DESC
+LIMIT 5;
+
+
 
 
 /*
