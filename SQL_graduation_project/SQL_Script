@@ -30,9 +30,6 @@ GROUP BY 1
 ORDER BY 2 DESC
 LIMIT 5;
 
-
-
-
 /*
 2nd Question:
 各个供应商提供的产品种类分别是多少？
