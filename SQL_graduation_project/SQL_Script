@@ -56,7 +56,7 @@ WITH t1 AS(
   ON
     custmrs.CustomerID = odrs.CustomerID
   JOIN
-    OrderDetailes odrdtl
+    OrderDetails odrdtl
   ON
     odrdtl.OrderID = odrs.OrderId
   JOIN
