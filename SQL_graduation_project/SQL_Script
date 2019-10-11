@@ -2,6 +2,20 @@
 1st Question:
 哪些供应商与批发商的客户在同一个国家？
 */
+-- WITH t1 AS (
+--   SELECT
+--     Country
+--   FROM
+--     Suppliers suplrs
+-- ),
+-- t2 AS (
+--   SELECT
+--     Country
+--   FROM
+--     Customers custmrs
+-- )
+-- SELECT
+-- FROM t1
 
 SELECT
   suplrs.Country AS suplr_country,
