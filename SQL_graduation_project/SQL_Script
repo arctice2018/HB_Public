@@ -1,33 +1,33 @@
 /*
 1st Question:
-哪些供应商与批发商的客户在同一个国家？
+供应商与批发商的客户在同一个城市的情况,客户额数量最多的前5名城市？
 */
-
+WITH t1 AS (
+  SELECT
+    Country AS s_country,
+    City AS s_city,
+    CompanyName AS s_company_name
+  FROM
+    Suppliers s
+),
+t2 AS (
+  SELECT
+    City AS c_city
+  FROM
+    Customers c
+)
 SELECT
-  suplrs.Country AS suplr_country,
-  COUNT(suplrs.CompanyName) AS num_suplr_in_one_country
+  t1.s_city AS same_city,
+  t1.s_company_name AS suplr_name,
+  COUNT(t1.s_city) AS num_of_customers
 FROM
-  Customers custmrs
-JOIN
-  Orders odrs
+  t1
+LEFT JOIN
+  t2
 ON
-  custmrs.CustomerID = odrs.CustomerID
-JOIN
-  OrderDetails odrdtl
-ON
-  odrdtl.OrderID = odrs.OrderId
-JOIN
-  Products prdts
-ON
-  prdts.ProductID = odrdtl.ProductID
-JOIN
-  Suppliers suplrs
-ON
-  suplrs.SupplierID = prdts.SupplierID
-WHERE
-  suplrs.Country = custmrs.Country
-GROUP BY 1
-ORDER BY 2 DESC
+  t1.s_city = c_city
+GROUP BY 1,2
+ORDER BY 3 DESC
 LIMIT 5;
 
 /*
