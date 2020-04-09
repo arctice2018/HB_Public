@@ -1,0 +1,145 @@
+---
+title: "diamonds_exercise"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+加载数据集,
+如果没有设置相关默认选项，或者保存当前工作目录，那么数据集和工具包都需要都需要在使用时从新加载。
+```{r}
+library(ggplot2)
+data(diamonds)
+?diamonds
+```
+
+```{r}
+names(diamonds)
+```
+```{r}
+str(diamonds)
+```
+
+```{r}
+dim(diamonds)
+```
+```{r}
+summary(diamonds)
+```
+
+```{r}
+table(diamonds$color)
+levels(diamonds$color)
+```
+```{r}
+ggplot(aes(x = price), data = diamonds) +
+  geom_histogram(binwidth = 200)
+```
+```{r}
+sum(diamonds$price <500)
+sum(diamonds$price <250)
+sum(diamonds$price >=15000)
+```
+You can save images by using the ggsave() command.
+ggsave() will save the last plot created.
+For example...
+                 qplot(x = price, data = diamonds)
+                 ggsave('priceHistogram.png')
+
+ ggsave currently recognises the extensions eps/ps, tex (pictex),
+ pdf, jpeg, tiff, png, bmp, svg and wmf (windows only).
+```{r}
+ggplot(aes(x = price),data = diamonds) +
+  geom_histogram(binwidth = 50,color = I('black'),fill= I('blue')) +
+  scale_x_continuous(breaks = seq(100,5000,500)) +
+  coord_cartesian(xlim = c(0,5000))
+```
+
+```{r}
+ggplot(aes(x = price),data = diamonds) +
+  geom_histogram(binwidth = 1,color = I('black'),fill= I('blue')) +
+  scale_x_continuous(breaks = seq(600,700,10)) +
+  coord_cartesian(xlim = c(600,700))
+```
+Break out the histogram of diamond prices by cut.
+
+You should have five histograms in separate
+panels on your resulting plot.
+```{r}
+ggplot(aes(x = price),data = diamonds) +
+  geom_histogram(binwidth = 50,color = I('black'),fill= I('green')) +
+  scale_x_continuous(breaks = seq(0,5000,500),limits = c(0,5000)) +
+  scale_y_continuous(breaks = seq(0,600,200),limits = c(0,1000)) +
+  facet_wrap(~cut,ncol=1)
+```
+```{r}
+by(diamonds$price,diamonds$cut,summary)
+```
+### from udactiy
+```{r}
+qplot(x = price, data = diamonds) + facet_wrap(~cut)
+```
+This means the distributions should be somewhat similar,but the histograms we created don't show that.
+The 'Fair' and 'Good' diamonds appear to have different distributions compared to the bettercut diamonds. They seem somewhat uniformon the left with long tails on the right.
+
+Create a histogram of price per carat
+and facet it by cut. You can make adjustments
+to the code from the previous exercise to get started.
+
+Adjust the bin width and transform the scale of the x-axis using log10.
+```{r}
+ggplot(aes(x = price/carat),data = diamonds) +
+  geom_histogram(binwidth = 0.01,color = I('black'),fill= I('green')) +
+  scale_x_log10()
+
+```
+Investigate the price of diamonds using box plots,numerical summaries, and one of the following categorical variables: cut, clarity, or color.
+BOXPLOTS BY CLARITY, BOXPLOT BY COLOR, or BOXPLOTS BY CUT
+在箱线图中，我们将 y 参数作为连续数据，将 x 参数作为分类数据。
+```{r}
+ggplot(aes(x = cut,y = price),data = diamonds) +
+  geom_boxplot(outlier.color = I('red')) 
+ggplot(aes(x = clarity,y = price),data = diamonds) +
+  geom_boxplot()
+ggplot(aes(x = color,y = price),data = diamonds) +
+  geom_boxplot()
+```
+
+你可以使用 IQR() 函数来查找四分位数间距，并向其传入钻石数据框的一个子集。
+例如...
+IQR(subset(diamonds, price <1000)$price)
+记住：subset 返回一个数据框，因此我们需要在最后使用 $price 来访问该变量。
+```{r}
+quantile(subset(diamonds,color == 'D')$price)
+quantile(subset(diamonds,color == 'J')$price)
+IQR(subset(diamonds,color == 'D' )$price)
+IQR(subset(diamonds,color == 'J')$price)
+```
+数据加工或数据整理占用数据科学家或数据分析员大量的时间，而 tidyr 和 dplyr 两种 R 包可使 R 中的这些任务更加简单。
+tidyr - 用于重塑数据布局的包
+dplyr - 用于帮助转换整洁的表格数据的包
+read.csv('data.csv', header = T, row.names = 1, check.names = F)
+如果你想对调数据框中的行和列，可以使用这个函数：t()。
+

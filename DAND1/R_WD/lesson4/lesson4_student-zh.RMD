@@ -1,10 +1,14 @@
 第 4 课
 ========================================================
+```{r}
+library(ggplot2)
+df <- read.csv('pseudo_facebook.tsv',sep = '\t')
+```
 
 ***
 
 ### 散点图和自我感知的关注量
-注释：
+注释：研究两个变量之间的关系，首先选择散点图。
 
 ***
 
@@ -12,13 +16,19 @@
 注释：
 
 ```{r Scatterplots}
-
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_point()
 ```
 
 ***
 
 #### 你现在注意到什么？
-回复：
+回复：30岁以下的用户，他们的好友数最多，超过30岁的用户，好友数只有30岁以下用户的一半。另外，超过60岁的用户，其好友数存在异常，出现多个竖线，且好友数和30岁以下的用户的好友数相近。
+
+可是使用函数read.delim()来读取tsv文件。
+```{r}
+df2 <- read.delim('pseudo_facebook.tsv')
+```
 
 ***
 
@@ -26,45 +36,62 @@
 注释：
 
 ```{r ggplot Syntax}
-
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_point() +
+  xlim(13,90)
 ```
 
 ***
 
 ### 过度绘制
-注释：
+注释：alpha的参数值为1/20，表示每20个数据用1个图像中的墨点表示。
 
 ```{r Overplotting}
-
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_point(alpha = 1/20) +
+  xlim(13,90)
+```
+使用geom_jitter，而不是geom_point的原因是，age是连续数值，而geom_point展示出间隔,jitter实际上是为现有的数据增加噪声，注意，对于原点的数据，可能使数值变成负值。
+```{r}
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_jitter(alpha = 1/20) +
+  xlim(13,90)
 ```
 
 #### 你在这个绘图中注意到了什么？
-回复：
+回复：30岁以下的用户的好友大多数都小于1000人，而不是没有调整alpha之前的图像，那看起来好友数超过1000人的用户很多。
 
 ***
 
 ### Coord_trans()
 注释：
 
-```{r Coord_trans()}
-
-```
-
 #### 查阅 coord_trans() 的文档，在绘图中增加一层，使用平方根函数改变 friend_count。创建你的绘图！
-
+这里不能使用geom_jitter(),因为位于纵坐标的好友数可能存在0，如果使用sqrt进行调整的化，噪声可能使数值出现负值，那么负值的平方不是实数。
 ```{r}
-
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_point(alpha = 1/20) +
+  xlim(13,90) +
+  coord_trans(y = 'sqrt')
 ```
 
 #### 你发现了什么？
-
+年龄在25岁以下的用户，他们的好友数一般都低于1000人。
 ***
 
 ### Alpha 和抖动
-注释：
+注释：geom_jitter(),可以使用geom_point()函数，并传入position参数作为替换，也可以起到相同的作用。
 
 ```{r Alpha and Jitter}
-
+ggplot(aes(x = age,y = friendships_initiated),data = df) +
+  geom_point(position = "jitter",alpha = 1/20) +
+  xlim(13,90)
+```
+如果要对y轴进行坐标平方根缩放的话，在使用jitter的情况下，可以这样设置geom_point的position参数。
+```{r}
+ggplot(aes(x = age,y = friendships_initiated),data = df) +
+  geom_point(alpha= 1/10,position = position_jitter(height = 0)) +
+  coord_trans(y='sqrt')
 ```
 
 ***
