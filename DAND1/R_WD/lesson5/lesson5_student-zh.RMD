@@ -13,10 +13,35 @@
 
 ### 第三个定性变量
 注释：
+1. 使用group_by()函数，不需要再使用ungroup()函数，这是dplyr0.5.0版本之前的问题。参考
+http://xukuang.github.io/blog/2014/12/group-by-and-ungroup-function-in-R/
+2. 从执行结果来看，summarise()函数好像执行了arrange()函数的排序功能，除非需要指定特定的排序变量，否则不必显性执行
+arrange()函数。
+```{r}
+group_by_age_gender <- group_by(filter(df,!is.na(gender)),age,gender)
+pf.fc_by_age_gender <- summarise(group_by_age_gender,
+                                  mean_friend_count = mean(friend_count),
+                                  median_friend_count = median(friend_count),
+                                  n = n())
+head(pf.fc_by_age_gender)
+```
 
 ```{r Third Qualitative Variable}
 ggplot(aes(x = gender, y = age),
-       data = subset(pf, !is.na(gender))) + geom_histogram()
+       data = subset(pf, !is.na(gender))) + 
+  geom_boxplot(outlier.colour = I('red')) +
+  stat_summary(fun = mean,shape = 4)
+```
+```{r}
+ggplot(aes(x = age,y = friend_count,color = gender),data = subset(df,!is.na(gender))) +
+  geom_line(stat = 'summary',fun= median)
+```
+上面的代码，发现可以在ggplot()图层中aes中传入color，也可以在geom_line中传入
+下面代码是较为简洁的代码。
+**R语言的函数不严谨，相关函数没有规定参数有哪些，不像python，而是不用管帮助文档的规定，只要传入的参数可以使用就可以，比如，上面代码中，geom_line(),没有fun参数，你传入了就识别了。**
+```{r}
+ggplot(aes(x = age,y = friend_count),data = subset(df,!is.na(gender))) +
+  stat_summary(geom = 'line',fun = median,aes(color = gender))
 ```
 
 ***
@@ -25,7 +50,9 @@ ggplot(aes(x = gender, y = age),
 注释：
 
 ```{r Plotting Conditional Summaries}
-
+# 使用dplyr包，summaries,group_by生成的结果来绘制如上两个图形
+ggplot(aes(x = age,y = median_friend_count),data = pf.fc_by_age_gender) +
+  geom_line(aes(color =gender))
 ```
 
 ***

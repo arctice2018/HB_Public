@@ -105,13 +105,33 @@ ggplot(aes(x = age,y = friendships_initiated),data = df) +
 注释：
 
 ```{r Conditional Means}
-
+df_by_age_groups <- group_by(df,age)
+df_summary_by_age <- summarise(df_by_age,
+                               friend_count_mean_by = mean(friend_count),
+                               friend_count_median_by = median(friend_count),
+                               n_by = n())
+# 按照age进行排序
+df_summary_by_age <- arrange(df_summary_by_age,age)
+head(df_summary_by_age)
+```
+与上述代码等效的代码如下：
+```{r}
+df_summary_by_age <- df %>%
+  group_by(age)%>%
+  summarise(friend_count_mean_by = mean(friend_count),
+            friend_count_median_by = median(friend_count),
+            n_by = n())%>%
+  arrange(age)
+head(df_summary_by_age)
 ```
 
 创建你的绘图！
 
 ```{r Conditional Means Plot}
-
+ggplot(aes(x = age,y = friend_count_mean_by),data = df_summary_by_age) +
+  geom_line()+
+  xlab("age")+
+  ylab("friend_count_mean")
 ```
 
 ***
@@ -120,11 +140,26 @@ ggplot(aes(x = age,y = friendships_initiated),data = df) +
 注释：
 
 ```{r Overlaying Summaries with Raw Data}
-
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_point(alpha = .05,position = position_jitter(height = 0),color =I("orange")) +
+  coord_trans(y='sqrt') +
+  stat_summary(fun = mean, color=I('blue'),geom = 'line') +
+  stat_summary(fun = quantile,fun.args = 0.1,geom = 'line',color = I('black')) +
+  stat_summary(fun = quantile,fun.args = 0.5,color =I('black'),geom = 'line') +
+  stat_summary(fun = quantile,fun.args = 0.9,geom = 'line',color = I('black'))
+```
+```{r}
+ggplot(aes(x = age,y = friend_count),data = df) +
+  geom_point(alpha = .05,position = position_jitter(height = 0),color =I("orange")) +
+  coord_cartesian(xlim = c(13,70),ylim = c(0,1000)) +
+  stat_summary(fun = mean, color=I('blue'),geom = 'line') +
+  stat_summary(fun = quantile,fun.args = 0.1,geom = 'line',color = I('black')) +
+  stat_summary(fun = quantile,fun.args = 0.5,color =I('black'),geom = 'line') +
+  stat_summary(fun = quantile,fun.args = 0.9,geom = 'line',color = I('black'))
 ```
 
 #### 你在这个绘图中发现了什么？
-回复：
+回复：30岁以下的用户，用户数平均值超过250人，而30岁到60岁之间的用户，用户数的平均值不超过250人。
 
 ***
 
@@ -139,7 +174,10 @@ ggplot(aes(x = age,y = friendships_initiated),data = df) +
 注释：
 
 ```{r Correlation}
-
+cor.test(pf$age,pf$friend_count,method = 'pearson')
+```
+```{r}
+with(pf,cor.test(age,friend_count,method = 'pearson'))
 ```
 
 查看函数 cor.test 的文档。
@@ -153,7 +191,7 @@ ggplot(aes(x = age,y = friendships_initiated),data = df) +
 注释：
 
 ```{r Correlation on Subsets}
-with(                 , cor.test(age, friend_count))
+with(subset(df,age<=70),cor.test(age, friend_count))
 ```
 
 ***
@@ -167,7 +205,8 @@ with(                 , cor.test(age, friend_count))
 注释：
 
 ```{r}
-
+ggplot(aes(y = likes_received,x = www_likes_received),data = df) +
+  geom_point()
 ```
 
 ***
@@ -176,13 +215,17 @@ with(                 , cor.test(age, friend_count))
 注释：
 
 ```{r Strong Correlations}
-
+ggplot(aes(x = www_likes_received,y = likes_received),data = df) +
+  geom_point() +
+  scale_x_continuous(limits = c(0,quantile(pf$www_likes_received,0.95))) +
+  scale_y_continuous(limits = c(0,quantile(pf$likes_received,0.95))) +
+  geom_smooth(method = 'lm',color =I('red'))
 ```
 
 两个变量之间的相关性是什么？计算时包含变量的前 5% 数值，四舍五入到小数点后三位。
 
 ```{r Correlation Calcuation}
-
+with(df,cor.test(www_likes_received,likes_received,method = 'pearson'))
 ```
 
 回复：
@@ -190,7 +233,7 @@ with(                 , cor.test(age, friend_count))
 ***
 
 ### Moira 的相关性
-注释：
+注释：关注变量之间的相关性以及相关系数的大小，对于构建机器学习模型时的变量筛选有重要的意义，以线性回归为例，需要变量之间的弱相关的，如果是变量之间的强相关的，就很难判断哪些变量是重要的，应该选择哪些变量进行模型学习。
 
 ***
 
@@ -201,32 +244,50 @@ with(                 , cor.test(age, friend_count))
 install.packages('alr3')
 library(alr3)
 ```
+```{r}
+data(Mitchell)
+```
 
 创建你的绘图！
 
 ```{r Temp vs Month}
-
+ggplot(aes(y = Temp,x = Month),data = Mitchell) +
+  geom_point()
 ```
+在 R 中，当参数没有名称时，参数匹配较为复杂。
 
+首先，参数可以通过名称进行匹配。如果一个参数精确匹配，会从参数列表中“删除”它，并且余下的未命名参数按照它们在函数定义中的顺序进行匹配。
+
+R 通过以下方式匹配参数：
+1.检查命名参数的精确匹配
+2.检查参数的部分匹配
+3.检查位置匹配
+4.如果 R 无法找到参数的匹配项，它通常会引发“未使用（unused）”参数错误。
+输入 str(functionName) 查找参数顺序，并且了解更多关于 R 函数参数的信息。
 ***
 
 ### 噪音散点图
 a. 猜猜散点图的相关系数。
-
+应该接近于0，近似没有线性相关性。
 b. 两个变量的实际相关性是什么？
 (四舍五入到千分位)
-
-```{r Noisy Scatterplots}
-
+```{r}
+with(Mitchell,cor.test(Month,Temp,method ='pearson'))
 ```
 
 ***
 
 ### 理解数据
 注释：
+```{r}
+#获得numeric vetor的数值范围
+range(Mitchell$Month)
+```
 
 ```{r Making Sense of Data}
-
+ggplot(aes(y = Temp,x = Month),data = Mitchell) +
+  geom_point() +
+  scale_x_continuous(breaks = seq(0,203,12))
 ```
 
 ***
@@ -253,12 +314,18 @@ b. 两个变量的实际相关性是什么？
 ### 含有月份平均数的年龄
 
 ```{r Age with Months Means}
-
+df$age_with_months <- df$age+(1-df$dob_month/12)
 ```
 
 编程任务
 ```{r Programming Assignment}
-
+age_month_groupby <- group_by(df,age_with_months)
+df_age_with_month_by <- summarise(age_month_groupby,
+                                  friend_count_mean = mean(friend_count),
+                                  friend_count_median = median(friend_count),
+                                  n = n())
+df_age_with_month_by <- arrange(df_age_with_month_by,age_with_months)
+head(df_age_with_month_by)
 ```
 
 ***
@@ -266,22 +333,51 @@ b. 两个变量的实际相关性是什么？
 ### 条件平均数的噪音
 
 ```{r Noise in Conditional Means}
-
+age_month_group <- group_by(subset(df,age < 71),age_with_months)
+df.age_month <- summarise(age_month_group,
+                          friend_count_mean = mean(friend_count),
+                          friend_count_median = median(friend_count),
+                          n = n())
+df.age_month <- arrange(df.age_month,age_with_months)
+head(df.age_month)
+```
+```{r}
+ggplot(aes(x = age_with_months,y=friend_count_mean),data =df.age_month) +
+  geom_line()
 ```
 
 ***
 
 ### 使条件平均数更加流畅
 注释：
+```{r Conditional Means}
+df_by_age_groups <- group_by(df,age)
+df_summary_by_age <- summarise(df_by_age,
+                               friend_count_mean = mean(friend_count),
+                               friend_count_median = median(friend_count),
+                               n_by = n())
+# 按照age进行排序
+df_summary_by_age <- arrange(df_summary_by_age,age)
+head(df_summary_by_age)
+```
 
 ```{r Smoothing Conditional Means}
-
+p1 <- ggplot(aes(x = age_with_months,y=friend_count_mean),data =df.age_month) +
+  geom_line() +
+  geom_smooth()
+p2 <- ggplot(aes(x = age,y = friend_count_mean),data = subset(df_summary_by_age,age<71)) +
+  geom_line()+
+  geom_smooth()
+p3 <- ggplot(aes(x = round(age/5)*5,y=friend_count),data = subset(df,age<71)) +
+  stat_summary(fun = mean,geom = 'line')
+library(gridExtra)
+grid.arrange(p1,p2,p3,ncol=1)
 ```
 
 ***
 
 ### 选择哪个绘图？
-注释：
+注释：不选择。
 
 ***
 
