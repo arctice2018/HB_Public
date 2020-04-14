@@ -3,38 +3,58 @@
 
 ### 欢迎语
 注释：
+```{r}
+library(ggplot2)
+library(tidyr)
+library(dplyr)
+library(reshape2)
+library(gridExtra)
+
+```
+```{r}
+dm <- read.csv('diamondsbig.csv')
+```
 
 ***
 
 ### 散点图回顾
-
+#### price变量中存在空值，如果不设置na.rm为True,那么会报错，
 ```{r Scatterplot Review}
-
+ggplot(data = dm,aes(x = carat,y = price)) +
+  geom_point(color= I('black'),fill=I('blue'),alpha =.5,shape =21)+
+  scale_x_continuous(limits = c(0,quantile(dm$carat,0.99)))+
+  scale_y_continuous(limits = c(0,quantile(dm$price,0.99,na.rm = TRUE)))
 ```
 
 ***
 
 ### 价格与克拉的关系
-回复：
+回复：非线性关系
+```{r}
+ggplot(data = dm,aes(x = carat,y = price)) +
+  geom_point(color= I('black'),fill=I('blue'),alpha = .5,shape =21)+
+  geom_smooth(method = 'lm')+
+  scale_x_continuous(limits = c(0,quantile(dm$carat,0.99)))+
+  scale_y_continuous(limits = c(0,quantile(dm$price,0.99,na.rm = TRUE)))
+```
 
 ***
 
 ### Frances Gerety
-注释：
+注释：de beers 公司的拥有者或者营销总监
 
 #### 钻石是
-
+经典广告词，a diamond is forever
 ***
 
 ### 钻石的兴起
-注释：
+注释：将钻石与婚姻的情感、愿望相关联，与男人的社会地位相关连，同时通过出借给上层阶层，明星名人，在重要的场合出现，比如奥斯卡颁奖典礼，热门电影中出现，将钻石与上流社会的相关连进行营销。
 
 ***
 
 ### ggpairs 函数
 注释：
 
-```{r ggpairs Function}
 # 如有需要，安装下列组件
 install.packages('GGally')
 install.packages('scales')
@@ -52,9 +72,13 @@ library(scales)
 library(memisc)
 
 # 数据集中 10,000 个钻石的样本
+```
+```{r}
 set.seed(20022012)
-diamond_samp <- diamonds[sample(1:length(diamonds$price), 10000), ]
-ggpairs(diamond_samp, params = c(shape = I('.'), outlier.shape = I('.')))
+diamond_samp <- diamonds[sample(1:length(diamonds$price),10000),]
+ggpairs(diamond_samp,
+  lower = list(continuous = wrap("points", shape = I('.'))),
+  upper = list(combo = wrap("box", outlier.shape = I('.'))),axisLabels = 'internal',cardinality_threshold = 15)
 ```
 
 在 ggpairs 输出中你发现了什么？
@@ -66,22 +90,20 @@ ggpairs(diamond_samp, params = c(shape = I('.'), outlier.shape = I('.')))
 注释：
 
 ```{r The Demand of Diamonds}
+p1 <- ggplot(aes(x = price),data = dm) +
+  geom_histogram(binwidth =100 )+
+  ggtitle('price distribution')+
+  coord_cartesian(ylim = c(0,3000))
+p2 <- ggplot(aes(x = price),data = dm) +
+  geom_histogram(binwidth = 0.01)+
+  ggtitle('price(log10) distribution')+
+  scale_x_log10()
+grid.arrange(p1,p2,ncol = 2)
+  
 
 ```
 
 ***
-
-### 结合需求和价格的分布
-注释：
-
-***
-
-### 改变散点图
-
-```{r Scatterplot Transformation}
-
-```
-
 
 ### 创建一个新函数，改变变量 carat
 
@@ -106,13 +128,14 @@ ggplot(aes(carat, price), data = diamonds) +
 ### 再次访问过度绘制
 
 ```{r Sort and Head Tables}
-
+head(sort(table(dm$carat),decreasing = T))
+head(sort(table(dm$price),decreasing = T))
 ```
 
 
 ```{r Overplotting Revisited}
 ggplot(aes(carat, price), data = diamonds) + 
-  geom_point() + 
+  geom_point(alpha =0.5,size = 3/4,position = 'jitter' )+
   scale_x_continuous(trans = cuberoot_trans(), limits = c(0.2, 3),
                      breaks = c(0.2, 0.5, 1, 2, 3)) + 
   scale_y_continuous(trans = log10_trans(), limits = c(350, 15000),
@@ -120,23 +143,17 @@ ggplot(aes(carat, price), data = diamonds) +
   ggtitle('Price (log10) by Cube-Root of Carat')
 ```
 
-***
-
-### 其他定性因素
-注释：
-
-***
-
 ### 价格 vs. 克拉与净度
 
 改变下列代码。
 ```{r Price vs. Carat and Clarity}
 # 安装并加载 RColorBrewer 组件
-install.packages('RColorBrewer')
-library(RColorBrewer)
-
+# install.packages('RColorBrewer')
+# library(RColorBrewer)
+```
+```{r}
 ggplot(aes(x = carat, y = price), data = diamonds) + 
-  geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+  geom_point(alpha = 0.5, size = 1, position = 'jitter',aes(color=clarity)) +
   scale_color_brewer(type = 'div',
     guide = guide_legend(title = 'Clarity', reverse = T,
     override.aes = list(alpha = 1, size = 2))) +  
@@ -146,7 +163,8 @@ ggplot(aes(x = carat, y = price), data = diamonds) +
     breaks = c(350, 1000, 5000, 10000, 15000)) +
   ggtitle('Price (log10) by Cube-Root of Carat and Clarity')
 ```
-
+#### override.aes参数的作用？是guide_legend()函数的参数，主要是通过替换现有的参数值，比如alpha,size等等。
+####guide_legend函数的作用?设置legend相关内容，比如title的位置和方向，label的位置和方向等等。
 ***
 
 ### 净度与价格
@@ -158,16 +176,16 @@ ggplot(aes(x = carat, y = price), data = diamonds) +
 
 改变下列代码。
 ```{r Price vs. Carat and Cut}
-ggplot(aes(x = carat, y = price, color = clarity), data = diamonds) + 
+ggplot(aes(x = carat, y = price, color = cut), data = diamonds) + 
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   scale_color_brewer(type = 'div',
-                     guide = guide_legend(title = 'Clarity', reverse = T,
+                     guide = guide_legend(title = 'Cut', reverse = T,
                                           override.aes = list(alpha = 1, size = 2))) +  
   scale_x_continuous(trans = cuberoot_trans(), limits = c(0.2, 3),
                      breaks = c(0.2, 0.5, 1, 2, 3)) + 
   scale_y_continuous(trans = log10_trans(), limits = c(350, 15000),
                      breaks = c(350, 1000, 5000, 10000, 15000)) +
-  ggtitle('Price (log10) by Cube-Root of Carat and Clarity')
+  ggtitle('Price (log10) by Cube-Root of Carat and Cut')
 ```
 
 ***
@@ -181,16 +199,16 @@ ggplot(aes(x = carat, y = price, color = clarity), data = diamonds) +
 
 改变下列代码。
 ```{r Price vs. Carat and Color}
-ggplot(aes(x = carat, y = price, color = cut), data = diamonds) + 
+ggplot(aes(x = carat, y = price, color = color), data = diamonds) + 
   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
   scale_color_brewer(type = 'div',
-                     guide = guide_legend(title = Cut, reverse = T,
+                     guide = guide_legend(title = 'Color', reverse = F,
                                           override.aes = list(alpha = 1, size = 2))) +  
   scale_x_continuous(trans = cuberoot_trans(), limits = c(0.2, 3),
                      breaks = c(0.2, 0.5, 1, 2, 3)) + 
   scale_y_continuous(trans = log10_trans(), limits = c(350, 15000),
                      breaks = c(350, 1000, 5000, 10000, 15000)) +
-  ggtitle('Price (log10) by Cube-Root of Carat and Cut')
+  ggtitle('Price (log10) by Cube-Root of Carat and Color')
 ```
 
 ***

@@ -192,6 +192,7 @@ with(pf,cor.test(age,friend_count,method = 'pearson'))
 
 ```{r Correlation on Subsets}
 with(subset(df,age<=70),cor.test(age, friend_count))
+with(subset(df,age<=70),cor.test(age, friend_count))
 ```
 
 ***
