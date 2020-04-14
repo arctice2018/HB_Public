@@ -10,6 +10,12 @@
 注释：
 
 ***
+```{r}
+library(ggplot2)
+library(dplyr)
+library(reshape2)
+library(tidyr)
+```
 
 ### 第三个定性变量
 注释：
@@ -18,12 +24,12 @@ http://xukuang.github.io/blog/2014/12/group-by-and-ungroup-function-in-R/
 2. 从执行结果来看，summarise()函数好像执行了arrange()函数的排序功能，除非需要指定特定的排序变量，否则不必显性执行
 arrange()函数。
 ```{r}
-group_by_age_gender <- group_by(filter(df,!is.na(gender)),age,gender)
-pf.fc_by_age_gender <- summarise(group_by_age_gender,
+group_by_age_gender <- group_by(subset(df,!is.na(gender)),age,gender)
+df.fc_by_age_gender <- summarise(group_by_age_gender,
                                   mean_friend_count = mean(friend_count),
                                   median_friend_count = median(friend_count),
                                   n = n())
-head(pf.fc_by_age_gender)
+head(df.fc_by_age_gender)
 ```
 
 ```{r Third Qualitative Variable}
@@ -51,37 +57,34 @@ ggplot(aes(x = age,y = friend_count),data = subset(df,!is.na(gender))) +
 
 ```{r Plotting Conditional Summaries}
 # 使用dplyr包，summaries,group_by生成的结果来绘制如上两个图形
-ggplot(aes(x = age,y = median_friend_count),data = pf.fc_by_age_gender) +
+ggplot(aes(x = age,y = median_friend_count),data = df.fc_by_age_gender) +
   geom_line(aes(color =gender))
 ```
 
-***
-
-### 思考比率
-注释：
-
-***
-
-### 又宽又长的格式
-注释：
-
-***
 
 ### 改变数据
 注释：
 
-```{r}
-install.packages('reshape2')
-library(reshape2)
-```
+1.将long格式的数据转换为wide格式的数据，如果处理的是dataframe，那么使用dcast,也就是说函数的第一个字母表示待处理的数据类型，而对与处理的是array类型的数据，那么使用acast函数。
+2.'~'符号左边的列名是在返回值中出现的列，而符号右边的列名是需要展开的，将其中的值（male和female）作为返回值的新的列名。
 
+```{r}
+df.fc_by_age_gender.wide <- dcast(df.fc_by_age_gender,age~gender,value.var = 'median_friend_count')
+head(pf.fc_by_age_gender.wide)
+```
+The linetype parameter can take the values 0-6:
+0 = blank, 1 = solid, 2 = dashed
+3 = dotted, 4 = dotdash, 5 = longdash
+6 = twodash
 ***
 
 ### 比率图
 注释：
 
 ```{r Ratio Plot}
-
+ggplot(aes(x = age,y = female/male),data = pf.fc_by_age_gender.wide) +
+  geom_line() +
+  geom_hline(yintercept = 1,alpha=0.5,linetype = 2)
 ```
 
 ***
@@ -91,6 +94,8 @@ library(reshape2)
 
 ```{r Third Quantitative Variable}
 
+df$year_joined <- floor(2014-df$tenure/365)
+summary(df$year_joined)
 ```
 
 ***
@@ -99,7 +104,8 @@ library(reshape2)
 注释：
 
 ```{r Cut a Variable}
-
+df$year_joined.cut<-cut(df$year_joined,c(2004,2009,2011,2012,2014))
+table(df$year_joined.cut)
 ```
 
 ***
@@ -108,7 +114,8 @@ library(reshape2)
 注释：
 
 ```{r Plotting it All Together}
-
+ggplot(aes(x = age,y = friend_count),data = subset(df,!is.na(year_joined.cut))) +
+  stat_summary(aes(color = year_joined.cut),geom = 'line',fun =mean)
 ```
 
 ***
@@ -117,7 +124,10 @@ library(reshape2)
 注释：
 
 ```{r Plot the Grand Mean}
-
+ggplot(aes(x = age,y = friend_count),data = subset(df,!is.na(year_joined.cut))) +
+  stat_summary(aes(color = year_joined.cut),geom = 'line',fun = mean) +
+  stat_summary(fun=mean,linetype =2,geom='line')
+  #geom_line(stat = 'summary',fun =mean,linetype =2)
 ```
 
 ***
@@ -126,7 +136,7 @@ library(reshape2)
 注释：
 
 ```{r Friending Rate}
-
+with(subset(df,tenure >=1),summary(friend_count/tenure))
 ```
 
 ***
@@ -134,12 +144,13 @@ library(reshape2)
 ### 开始交友
 注释：
 
-平均交友率是什么？
+交友率是什么？0.6096
 
-最大交友率是什么？
+最大交友率是什么？417
 
 ```{r Friendships Initiated}
-
+ggplot(aes(x = tenure,y = friendships_initiated/tenure),data = subset(df,tenure>=1)) +
+  geom_line(aes(color = year_joined.cut),stat = 'summary',fun=mean)
 ```
 
 ***
@@ -150,28 +161,34 @@ library(reshape2)
 ```{r Bias-Variance Tradeoff Revisited}
 
 ggplot(aes(x = tenure, y = friendships_initiated / tenure),
-       data = subset(pf, tenure >= 1)) +
-  geom_line(aes(color = year_joined.bucket),
+       data = subset(df, tenure >= 1)) +
+  geom_line(aes(color = year_joined.cut),
             stat = 'summary',
-            fun.y = mean)
+            fun= mean)
 
 ggplot(aes(x = 7 * round(tenure / 7), y = friendships_initiated / tenure),
-       data = subset(pf, tenure > 0)) +
-  geom_line(aes(color = year_joined.bucket),
+       data = subset(df, tenure > 0)) +
+  geom_line(aes(color = year_joined.cut),
             stat = "summary",
-            fun.y = mean)
+            fun = mean)
 
 ggplot(aes(x = 30 * round(tenure / 30), y = friendships_initiated / tenure),
-       data = subset(pf, tenure > 0)) +
-  geom_line(aes(color = year_joined.bucket),
+       data = subset(df, tenure > 0)) +
+  geom_line(aes(color = year_joined.cut),
             stat = "summary",
-            fun.y = mean)
+            fun= mean)
 
 ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
-       data = subset(pf, tenure > 0)) +
-  geom_line(aes(color = year_joined.bucket),
+       data = subset(df, tenure > 0)) +
+  geom_line(aes(color = year_joined.cut),
             stat = "summary",
-            fun.y = mean)
+            fun = mean)
+
+```
+```{r}
+ggplot(aes(x = tenure, y = friendships_initiated / tenure),
+       data = subset(df, tenure >= 1)) +
+  geom_smooth(aes(color = year_joined.cut))
 
 ```
 
@@ -184,6 +201,12 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 
 ###  Yogurt 数据集简介
 注释：
+```{r}
+yo <-read.csv('yogurt.csv')
+str(yo)
+yo$id <- factor(yo$id)
+str(yo)
+```
 
 ***
 
@@ -191,16 +214,18 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 注释：
 
 ```{r Histograms Revisited}
-
+ggplot(aes(x = price),data = yo) +
+  geom_histogram(fill = I('orange'),color = I('black'))
 ```
 
 ***
 
 ### 购买数量
-注释：
+注释：使用transform函数用来创建新的变量
 
 ```{r Number of Purchases}
-
+yo <- transform(yo,all.purchase = strawberry+ blueberry + pina.colada + plain + mixed.berry)
+summary(yo$all.purchase)
 ```
 
 ***
@@ -209,7 +234,8 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 注释：
 
 ```{r Prices over Time}
-
+ggplot(aes(x = time,y = price),data = yo) +
+  geom_point(alpha =.05,position = position_jitter(),shape = 21,color =I('orange'))
 ```
 
 ***
@@ -220,9 +246,14 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 ***
 
 ### 观察家庭的样本
-
+###### 只有factor类型的variable可以使用levels函数，获取其中的levels。引入第三变量，可以使用颜色表示，也可以使用形状的大小来表示，相应的，分别对应的参数是color,size,可以使用aes函数进行包裹，并送入ggplot函数，或者geom_point等图形函数中使用。
 ```{r Looking at Sample of Households}
-
+set.seed(4320)
+sample.ids <- sample(levels(yo$id),16)
+ggplot(aes(x = time,y = price),data = subset(yo,id%in%sample.ids)) +
+  geom_line() +
+  geom_point(aes(size=all.purchase),shape= 1)+
+  facet_wrap(~id)
 ```
 
 ***
@@ -239,6 +270,15 @@ ggplot(aes(x = 90 * round(tenure / 90), y = friendships_initiated / tenure),
 
 ### 散点图矩阵
 注释：
+数值型变量产生散点图，而分类变量在其中显示的是直方图和箱型图
+参数axisLabels = 'internal'，用来设置变量标签的位置，默认是在图形的四周显示。
+
+```{r}
+library(GGally)
+theme_set(theme_minimal(20))
+df_subset <- df[ , c(2:7)]
+ggpairs(df_subset[sample.int(nrow(df_subset),1000),],axisLabels = 'internal')
+```
 
 ***
 
